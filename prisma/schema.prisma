@@ -1,0 +1,85 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model Account {
+  id        Int     @id @default(autoincrement())
+  role      String  @default("CUSTOMER")
+  email     String  @unique
+  password  String
+  profile   Profile @relation(fields: [profileId], references: [id])
+  profileId Int     @unique
+
+  @@map("accounts")
+}
+
+model Profile {
+  id        Int    @id @default(autoincrement())
+  firstName String @map("first_name")
+  lastName  String @map("last_name")
+
+  pets    Pet[]
+  Account Account?
+
+  @@map("profiles")
+}
+
+model Pet {
+  id      Int     @id @default(autoincrement())
+  name    String
+  collar  Collar?
+  Owner   Profile @relation(fields: [ownerId], references: [id])
+  ownerId Int     @map("owner_id")
+
+  characteristics  Characteristic @relation(fields: [characteristicId], references: [id])
+  characteristicId Int            @unique
+
+  @@map("pets")
+}
+
+model Collar {
+  id     Int    @id @default(autoincrement())
+  qrcode String @unique
+  pet    Pet    @relation(fields: [petId], references: [id])
+  petId  Int    @unique @map("pet_id")
+
+  @@map("collars")
+}
+
+model Characteristic {
+  id               Int         @id @default(autoincrement())
+  age              Int
+  breed            Breed       @relation(fields: [breedId], references: [id])
+  breedId          Int         @map("breed_id")
+  temperament      Temperament @relation(fields: [temperamentId], references: [id])
+  temperamentId    Int
+  petDescription   String      @map("pet_description")
+  ownerDescription String      @map("owner_description")
+  Pet              Pet?
+
+  @@map("characteristics")
+}
+
+model Temperament {
+  id             Int              @id @default(autoincrement())
+  description    String
+  name           String           @unique
+  Characteristic Characteristic[]
+}
+
+model Breed {
+  id             Int              @id @default(autoincrement())
+  name           String
+  description    String?
+  Characteristic Characteristic[]
+
+  @@map("breeds")
+}
